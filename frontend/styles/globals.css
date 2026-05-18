@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ───────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar               { width: 6px; height: 6px; }
+::-webkit-scrollbar-track         { background: transparent; }
+::-webkit-scrollbar-thumb         { background: #30363d; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover   { background: #484f58; }
+
+/* ── IDE layout ─────────────────────────────────────────────────────────────── */
+.ide-layout {
+  display: grid;
+  grid-template-rows: 40px 1fr;
+  grid-template-columns: 220px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.ide-topbar    { grid-column: 1 / -1; grid-row: 1; }
+.ide-sidebar   { grid-column: 1;      grid-row: 2; overflow-y: auto; }
+.ide-main      { grid-column: 2;      grid-row: 2; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Monaco overrides ───────────────────────────────────────────────────────── */
+.monaco-editor .margin            { background: #161b22 !important; }
+.monaco-editor-background         { background: #0d1117 !important; }
+.monaco-editor .current-line      { border: none !important; background: rgba(56, 139, 253, 0.06) !important; }
+
+/* ── Custom focus ring ──────────────────────────────────────────────────────── */
+.focus-ring:focus-visible {
+  outline: 2px solid #388bfd;
+  outline-offset: 2px;
+}
+
+/* ── Fade in animation ──────────────────────────────────────────────────────── */
+.fade-in    { animation: fadeIn 0.15s ease-out; }
+.slide-up   { animation: slideUp 0.2s ease-out; }
+
+@keyframes fadeIn  { from { opacity: 0; }                      to { opacity: 1; }                   }
+@keyframes slideUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ── Tab bar ────────────────────────────────────────────────────────────────── */
+.tab-active {
+  background: #0d1117;
+  border-bottom: 2px solid #388bfd;
+  color: #e6edf3;
+}
+
+/* ── Severity badges ────────────────────────────────────────────────────────── */
+.sev-error   { background: #3a1616; color: #f85149; border: 1px solid #f8514940; }
+.sev-warning { background: #3a2800; color: #d29922; border: 1px solid #d2992240; }
+.sev-info    { background: #1f3a5f; color: #388bfd; border: 1px solid #388bfd40; }
+
+/* ── Animated run button ────────────────────────────────────────────────────── */
+.btn-run {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.15s;
+}
+.btn-run:active { transform: scale(0.97); }
+
+/* ── Score ring ─────────────────────────────────────────────────────────────── */
+.score-ring {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 3px solid;
+}
+.score-high   { border-color: #3fb950; color: #3fb950; background: #1a3a22; }
+.score-mid    { border-color: #d29922; color: #d29922; background: #3a2800; }
+.score-low    { border-color: #f85149; color: #f85149; background: #3a1616; }

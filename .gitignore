@@ -1,25 +1,39 @@
 # macOS
 .DS_Store
 
+# Environment variables
+.env
+.env.local
+*.local
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+.vite/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
 # Python
 __pycache__/
 *.pyc
-.env
-venv/
+.pytest_cache/
 
-# Node
-node_modules/
-dist/
-
-# Logs
-*.log
-
-# IDE
-.vscode/
+# Editors / IDEs
+.vscode/*
+!.vscode/extensions.json
 .idea/
 
-# Testing
-.coverage
-
-# Docker
-*.pid
+# Misc
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
