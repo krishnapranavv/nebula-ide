@@ -1,0 +1,35 @@
+{
+  "_comment": "Reference config for CloudFront distribution. Apply via AWS Console or CLI.",
+  "Origins": {
+    "S3StaticSite": {
+      "DomainName": "nebula-ide-frontend.s3-website-us-east-1.amazonaws.com",
+      "CustomOriginConfig": {
+        "OriginProtocolPolicy": "http-only"
+      }
+    },
+    "EC2API": {
+      "DomainName": "YOUR_EC2_PUBLIC_DNS",
+      "CustomOriginConfig": {
+        "OriginProtocolPolicy": "https-only",
+        "HTTPSPort": 443
+      }
+    }
+  },
+  "CacheBehaviors": [
+    {
+      "PathPattern": "/api/*",
+      "TargetOriginId": "EC2API",
+      "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+      "_comment_cache": "CachingDisabled — API responses must not be cached"
+    }
+  ],
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "S3StaticSite",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "Compress": true,
+    "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+    "_comment_cache": "CachingOptimized for static assets"
+  },
+  "PriceClass": "PriceClass_100",
+  "_comment_price": "Only US/EU/Asia edge locations — lowest cost tier"
+}

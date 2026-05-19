@@ -1,0 +1,122 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Nebula IDE — Local Development Stack
+#
+# Services:
+#   api          FastAPI backend
+#   dynamodb     DynamoDB Local (free, no AWS account needed)
+#   localstack   LocalStack S3 (free S3 emulation)
+#   frontend     Vite dev server (optional — can run with `npm run dev` instead)
+#
+# Usage:
+#   docker compose up -d dynamodb localstack   # start AWS deps only
+#   docker compose up                           # start everything
+#
+# Cost: $0 — all services run locally
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nebula-api
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: development
+      DEBUG: "true"
+      SECRET_KEY: "local-dev-secret-change-in-prod"
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      DYNAMODB_ENDPOINT_URL: http://dynamodb:8000
+      S3_ENDPOINT_URL: http://localstack:4566
+      S3_BUCKET: nebula-ide-projects
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}   # from your shell env or .env file
+      AI_MODEL: claude-haiku-4-5-20251001
+      ALLOWED_ORIGINS: '["http://localhost:5173","http://localhost:3000"]'
+      SANDBOX_TIMEOUT_SECONDS: "10"
+      SANDBOX_MEMORY_LIMIT: "128m"
+    volumes:
+      # Mount Docker socket so the API can spawn sandbox containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Hot-reload: mount source for development
+      - ./backend:/app
+    depends_on:
+      dynamodb:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - nebula-net
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── DynamoDB Local ────────────────────────────────────────────────────────────
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: nebula-dynamodb
+    ports:
+      - "8001:8000"      # exposed on 8001 to avoid conflict with API
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - nebula-net
+
+  # ── LocalStack (S3 emulation) ─────────────────────────────────────────────────
+  localstack:
+    image: localstack/localstack:3
+    container_name: nebula-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: s3
+      DEFAULT_REGION: us-east-1
+      AWS_DEFAULT_REGION: us-east-1
+      EAGER_SERVICE_LOADING: "1"
+    volumes:
+      - ./infrastructure/scripts/localstack-init.sh:/etc/localstack/init/ready.d/init.sh
+      - localstack-data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/health | grep -q '\"s3\": \"available\"'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - nebula-net
+
+  # ── Frontend Dev Server (optional) ────────────────────────────────────────────
+  # Tip: run `cd frontend && npm run dev` directly for faster HMR
+  # Uncomment this service only if you prefer docker-only workflow:
+  #
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #     target: builder
+  #   container_name: nebula-frontend
+  #   ports:
+  #     - "5173:5173"
+  #   environment:
+  #     VITE_API_URL: ""
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   command: npm run dev -- --host
+  #   networks:
+  #     - nebula-net
+
+volumes:
+  localstack-data:
+
+networks:
+  nebula-net:
+    driver: bridge

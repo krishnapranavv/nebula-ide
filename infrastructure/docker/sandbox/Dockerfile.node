@@ -1,0 +1,13 @@
+# Hardened Node.js execution sandbox
+FROM node:18-alpine
+
+RUN apk --no-cache add bash \
+    && rm -rf /var/cache/apk/*
+
+# Remove package managers that could be used to install packages at runtime
+RUN rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/yarn 2>/dev/null || true
+
+# Confirm node is available
+RUN node --version
+
+# No CMD — supplied at runtime

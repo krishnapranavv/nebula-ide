@@ -1,0 +1,18 @@
+# Hardened Python execution sandbox
+# Built once and reused for all Python executions — no internet, no root
+FROM python:3.11-slim
+
+# Remove shell utilities not needed for code execution
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    && apt-get remove -y wget curl git ssh openssh-client \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /usr/share/doc /usr/share/man
+
+# Only safe stdlib available — no pip at runtime
+RUN pip install --no-cache-dir numpy matplotlib 2>/dev/null || true
+
+# Non-root execution user
+RUN useradd -r -s /bin/false -u 65534 sandbox || true
+
+# No CMD — command is passed at container.run() time by the executor service
